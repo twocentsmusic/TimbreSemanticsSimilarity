@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>How similar are these terms?</title>
+    <script src="jspsych/jspsych.js"></script>
+    <script src="jspsych/jspsychsheet.js"></script>
+    <script src="jspsych/plugin-survey-text.js"></script>
+    <script src="jspsych/plugin-preload.js"></script>
+    <script src="jspsych/plugin-html-keyboard-response.js"></script>
+    <script src="jspsych/plugin-html-button-response.js"></script>
+    <script src="jspsych/plugin-html-slider-response.js"></script>
+    <link href="jspsych/jspsych.css" rel="stylesheet" type="text/css" />
+    <link href="jspsych/jspsychsheet.css" rel="stylesheet" type="text/css" />
+
+    <!-- jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <style>
+        .jspsych-display-element {
+            font-size: 24px;
+        }
+    </style>
+</head>
+  <body></body>
+  <script>
+    var jsPsych = initJsPsych({
+        show_progress_bar: true,
+        on_finish: function () {
+        url = "https://script.google.com/macros/s/AKfycbymAtBbmzUqkg1tmyPfjZrAyPml5o1aokoHW50iWo4Q_AwdNH2WmkFnPvfu-61lsayosQ/exec";
+        jsPsychSheet.uploadData(url, jsPsych.data.get().csv())
+        }
+    });
+    var timeline = [];
+
+    var preload = {
+    type: jsPsychPreload,
+    auto_preload: true
+    }
+
+    var idInputTrial = {
+            type: jsPsychSurveyText,
+            questions: [
+                {prompt: 'User ID:', placeholder: '000000', required: true},
+            ]
+    };
+    timeline.push(idInputTrial);
+
+    var welcome = {
+        type: jsPsychHtmlButtonResponse,
+            stimulus: `
+            <p>Welcome to the experiment.</p>
+            `,
+            choices:['Continue to instructions']
+    };
+    timeline.push(welcome);
+
+    var instructions = {
+    type: jsPsychHtmlButtonResponse,
+    stimulus: `
+    <p>In this experiment, you will be asked to rate how similar two terms that can be used to describe timbre are.</p>
+    <p>Think of the words you use when you are trying to describe the timbre of a sound.</p>
+    <p>If you think the two terms mean exactly the same thing when used to describe the timbre of a sound,<br>drag the slider all the way to the left at "0".
+      <br>If you think the two terms describe totally different timbres,<br>drag the slider all the way to the right at "7".</p>
+    <p>Remember, these terms can be used to describe many different things in everyday life.</p>
+    <p>For this experiment, please think of these terms as they are used in describing timbre.</p>
+    `,
+    choices: ['Click here to proceed to a practice trial']
+  };
+  timeline.push(instructions);
+
+  var practice = {
+    type: jsPsychHtmlSliderResponse,
+    stimulus: `<div style="width:600px; margin: 0 auto; text-align: center;">
+        <p>How similar are these two terms</p>
+        <div style="width:240px; display: inline-block;">
+            <p>Bouncy</p>
+        </div>
+        <div style="width:20px; display: inline-block;">
+            <p>and</p>
+        </div>
+        <div style="width:240px; display: inline-block;">
+            <p>Complex</p>
+        </div>
+        </div>`,
+    start: 50,
+    step: 0.01,
+    labels: ['<span style="font-size: 0.8em;">0<br>Exactly the <strong>same</strong></span>', 
+          '<span style="font-size: 0.8em;">1</span>', 
+          '<span style="font-size: 0.8em;">2</span>', 
+          '<span style="font-size: 0.8em;">3</span>', 
+          '<span style="font-size: 0.8em;">4</span>', 
+          '<span style="font-size: 0.8em;">5</span>', 
+          '<span style="font-size: 0.8em;">6</span>',
+          '<span style="font-size: 0.8em;">7<br>Very <strong>different</strong></span>'],
+    require_movement: true,
+    slider_width: 1000,
+    button_label: 'Next',
+  };
+  timeline.push(practice);
+
+  var instructions2 = {
+    type: jsPsychHtmlButtonResponse,
+    stimulus: `
+    <p>You have come to the end of the practice phase.</p>
+    `,
+    choices: ['Click here to proceed to the experiment']
+  };
+  timeline.push(instructions2);
+
+  var termStimuli = ["Smooth", "Rough", "Bright", "Dark", "Thin", "Thick", "Light", "Heavy", "Warm", "Cold", "Full", "Hollow"];
+
+  function shuffle(array) {
+    var currentIndex = array.length, temporaryValue, randomIndex;
+
+    while (0 !== currentIndex) {
+
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex -= 1;
+
+    temporaryValue = array[currentIndex];
+    array[currentIndex] = array[randomIndex];
+    array[randomIndex] = temporaryValue;
+    }
+
+    return array;
+  }
+
+  function createTermPairs(terms) {
+    var pairs = [];
+    
+    for (var i = 0; i < terms.length; i++) {
+      for (var j = i; j < terms.length; j++) {
+        pairs.push([terms[i], terms[j]]);
+      }
+    }
+
+    return pairs;
+  }
+
+  var termPairs = shuffle(createTermPairs(termStimuli));
+
+  var trials = termPairs.map(function(pair) {
+  return {
+    type: jsPsychHtmlSliderResponse,
+    stimulus: `<div style="width:600px; margin: 0 auto; text-align: center;">
+        <p>"How similar are these two terms"</p>
+        <div style="width:240px; display: inline-block;">
+            ${pair[0]}
+        </div>
+        <div style="width:20px; display: inline-block;">
+            <p>and</p>
+        </div>
+        <div style="width:240px; display: inline-block;">
+            ${pair[1]}
+        </div>
+        </div>`,
+    start: 50,
+    step: 0.01,
+    labels: ['<span style="font-size: 0.8em;">0<br>Exactly the <strong>same</strong></span>', 
+          '<span style="font-size: 0.8em;">1</span>', 
+          '<span style="font-size: 0.8em;">2</span>', 
+          '<span style="font-size: 0.8em;">3</span>', 
+          '<span style="font-size: 0.8em;">4</span>', 
+          '<span style="font-size: 0.8em;">5</span>', 
+          '<span style="font-size: 0.8em;">6</span>',
+          '<span style="font-size: 0.8em;">7<br>Very <strong>different</strong></span>'],
+    require_movement: true,
+    slider_width: 1000,
+    button_label: 'Next',
+  };
+});
+
+timeline.push(...trials);
+
+  var end = {
+        type: jsPsychHtmlButtonResponse,
+        stimulus: `
+        <p>You've come to the end of the experiment.</p>
+        <p>Thank you for participating.</p>
+        <p>You've contributed to science!</p>
+        <p>Woohoo!</p>
+        `,
+        choices:['End experiment and upload my data'],
+        on_finish: function(data) {
+            document.body.innerHTML += '<p>Please wait for your data to finish uploading before closing the browser window.</p>';
+        },
+    };
+    timeline.push(end);
+
+    var all_data = jsPsych.data.get();
+    console.log(all_data.csv());
+
+    jsPsych.run(timeline);
+
+  </script>
+</html>
